@@ -2,24 +2,40 @@
 <html>
   <head>
     <title>Mi Museo AR - Proyecto 1</title>
-    <!-- Aquí llamamos a la librería A-Frame (el motor que crea el 3D) -->
+    <!-- Cargamos las herramientas necesarias -->
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-    <!-- Aquí llamamos a AR.js (lo que permite usar la cámara) -->
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
   </head>
 
   <body style="margin: 0px; overflow: hidden;">
-    <a-scene embedded arjs>
+    
+    <!-- Iniciamos la escena de Realidad Aumentada -->
+    <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;">
       
-      <!-- Aquí es donde pondremos nuestros objetos pronto -->
-<a-assets>
-    <!-- El nombre en 'src' debe ser EXACTAMENTE igual al nombre de tu archivo subido -->
-    <a-asset-item id="miPieza" src="pieza1.glb"></a-asset-item>
-</a-assets>
+      <!-- 1. PREPARAR LOS ACTIVOS: Aquí le decimos a la app dónde está tu archivo -->
+      <a-assets>
+        <!-- 'src' debe coincidir con el nombre de tu archivo en GitHub -->
+        <a-asset-item id="miPieza" src="pieza1.glb"></a-asset-item>
+      </a-assets>
 
-<a-marker-camera preset="hiro">
-    <!-- El 'scale' ajusta el tamaño. Si no lo ves, prueba con 0.1 o 0.5 -->
-    <a-gltf-model src="#miPieza" scale="0.5 0.5 0.5" position="0 0 0"></a-gltf-model>
-</a-marker-camera>
+      <!-- 2. LUCES: Añadimos luz para que la pieza se vea bien -->
+      <a-light type="ambient" color="#fff" intensity="1.5"></a-light>
+      <a-light type="directional" color="#fff" intensity="1" position="-1 2 1"></a-light>
+
+      <!-- 3. EL MARCADOR: Cuando la cámara vea el marcador 'Hiro' -->
+      <a-marker preset="hiro">
+        <!-- Ponemos tu modelo 3D. El scale ajusta el tamaño -->
+        <a-gltf-model 
+          src="#miPieza" 
+          scale="0.2 0.2 0.2" 
+          position="0 0 0"
+          rotation="0 0 0">
+        </a-gltf-model>
+      </a-marker>
+      
+      <!-- Definimos la cámara del usuario -->
+      <a-entity camera></a-entity>
+
+    </a-scene>
   </body>
 </html>
