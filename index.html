@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Mi Museo AR - Proyecto 1</title>
+    <!-- Aquí llamamos a la librería A-Frame (el motor que crea el 3D) -->
+    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+    <!-- Aquí llamamos a AR.js (lo que permite usar la cámara) -->
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+  </head>
+
+  <body style="margin: 0px; overflow: hidden;">
+    <a-scene embedded arjs>
+      
+      <!-- Aquí es donde pondremos nuestros objetos pronto -->
+      <a-box position="0 0.5 -1" material="color: red;"></a-box>
+      
+      <a-marker-camera preset="hiro"></a-marker-camera>
+    </a-scene>
+  </body>
+</html>
