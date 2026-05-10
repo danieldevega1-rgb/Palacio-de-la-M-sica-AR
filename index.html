@@ -1,41 +1,34 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Mi Museo AR - Proyecto 1</title>
-    <!-- Cargamos las herramientas necesarias -->
+    <title>Museo AR - Depuracion</title>
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
   </head>
 
   <body style="margin: 0px; overflow: hidden;">
     
-    <!-- Iniciamos la escena de Realidad Aumentada -->
     <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;">
       
-      <!-- 1. PREPARAR LOS ACTIVOS: Aquí le decimos a la app dónde está tu archivo -->
       <a-assets>
-        <!-- 'src' debe coincidir con el nombre de tu archivo en GitHub -->
+        <!-- Revisa que este nombre sea EXACTO al de tu archivo en GitHub -->
         <a-asset-item id="miPieza" src="pieza1.glb"></a-asset-item>
       </a-assets>
 
-      <!-- 2. LUCES: Añadimos luz para que la pieza se vea bien -->
-      <a-light type="ambient" color="#fff" intensity="1.5"></a-light>
-      <a-light type="directional" color="#fff" intensity="1" position="-1 2 1"></a-light>
-
-      <!-- 3. EL MARCADOR: Cuando la cámara vea el marcador 'Hiro' -->
       <a-marker preset="hiro">
-        <!-- Ponemos tu modelo 3D. El scale ajusta el tamaño -->
+        <!-- Esfera de referencia: si ves esto, el marcador funciona -->
+        <a-sphere position="0 0 0" radius="0.05" color="red"></a-sphere>
+
+        <!-- Tu pieza 3D -->
         <a-gltf-model 
           src="#miPieza" 
-          scale="0.2 0.2 0.2" 
-          position="0 0 0"
-          rotation="0 0 0">
+          scale="0.01 0.01 0.01" 
+          position="0 0.2 0">
         </a-gltf-model>
       </a-marker>
       
-      <!-- Definimos la cámara del usuario -->
       <a-entity camera></a-entity>
-
     </a-scene>
+
   </body>
 </html>
