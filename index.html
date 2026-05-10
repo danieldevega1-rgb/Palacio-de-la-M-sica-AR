@@ -12,9 +12,14 @@
     <a-scene embedded arjs>
       
       <!-- Aquí es donde pondremos nuestros objetos pronto -->
-      <a-box position="0 0.5 -1" material="color: red;"></a-box>
-      
-      <a-marker-camera preset="hiro"></a-marker-camera>
-    </a-scene>
+<a-assets>
+    <!-- El nombre en 'src' debe ser EXACTAMENTE igual al nombre de tu archivo subido -->
+    <a-asset-item id="miPieza" src="pieza1.glb"></a-asset-item>
+</a-assets>
+
+<a-marker-camera preset="hiro">
+    <!-- El 'scale' ajusta el tamaño. Si no lo ves, prueba con 0.1 o 0.5 -->
+    <a-gltf-model src="#miPieza" scale="0.5 0.5 0.5" position="0 0 0"></a-gltf-model>
+</a-marker-camera>
   </body>
 </html>
