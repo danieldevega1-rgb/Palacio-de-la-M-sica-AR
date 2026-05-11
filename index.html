@@ -9,6 +9,15 @@
     <style>
       * { box-sizing: border-box; }
 
+      /* OVERLAY DE PAUSA */
+      #overlay-pausa {
+        display: none;
+        position: fixed; top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: rgba(0, 0, 0, 0.75);
+        z-index: 400;
+      }
+
       #hint {
         position: fixed; bottom: 40px; left: 50%;
         transform: translateX(-50%);
@@ -16,9 +25,9 @@
         padding: 10px 22px; border-radius: 30px;
         font-size: 15px; pointer-events: none;
         transition: opacity 0.5s; font-family: sans-serif;
+        z-index: 300;
       }
 
-      /* BOTÓN PAUSA */
       #btn-pausa {
         position: fixed; top: 20px; right: 20px;
         background: rgba(0,0,0,0.6); color: white;
@@ -27,7 +36,6 @@
         cursor: pointer; z-index: 500;
       }
 
-      /* BOTÓN COLECCIÓN */
       #btn-coleccion {
         position: fixed; top: 20px; left: 20px;
         background: rgba(0,0,0,0.6); color: white;
@@ -36,7 +44,6 @@
         font-family: sans-serif; cursor: pointer; z-index: 500;
       }
 
-      /* PANEL BASE */
       .panel {
         display: none; position: fixed;
         top: 50%; left: 50%;
@@ -48,11 +55,7 @@
         font-family: sans-serif;
       }
 
-      /* PANEL CAPTURA */
-      #panel-captura {
-        padding: 25px;
-        border: 5px solid #FFD700;
-      }
+      #panel-captura { padding: 25px; border: 5px solid #FFD700; }
       #panel-captura h2 { margin: 0; color: #333; }
       #panel-captura p { color: #666; line-height: 1.4; margin: 15px 0; }
       #panel-captura button {
@@ -62,11 +65,7 @@
         cursor: pointer; width: 100%;
       }
 
-      /* PANEL PAUSA */
-      #panel-pausa {
-        padding: 30px;
-        border: 5px solid #444;
-      }
+      #panel-pausa { padding: 30px; border: 5px solid #444; }
       #panel-pausa h2 { margin: 0 0 20px; color: #333; }
       #panel-pausa button {
         display: block; width: 100%;
@@ -77,33 +76,53 @@
       .btn-reanudar { background: #4CAF50; color: white; }
       .btn-coleccion-pausa { background: #FFD700; color: #333; }
 
-      /* PANEL COLECCIÓN */
       #panel-coleccion {
-        padding: 25px;
-        border: 5px solid #8B4513;
-        max-height: 80vh;
-        overflow-y: auto;
+        padding: 25px; border: 5px solid #8B4513;
+        max-height: 80vh; overflow-y: auto;
       }
       #panel-coleccion h2 { margin: 0 0 5px; color: #333; }
       #panel-coleccion .subtitulo { color: #888; font-size: 13px; margin-bottom: 15px; }
+
       .grid-coleccion {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 10px;
-        margin-bottom: 15px;
+        gap: 10px; margin-bottom: 15px;
       }
+
       .tarjeta-pieza {
         border-radius: 12px; padding: 12px 8px;
         text-align: center; font-size: 12px;
-        border: 2px solid #ddd;
+        border: 2px solid #ddd; cursor: pointer;
+        transition: transform 0.1s;
       }
-      .tarjeta-pieza.capturada { background: #FFF8E1; border-color: #FFD700; }
-      .tarjeta-pieza.pendiente { background: #f5f5f5; color: #aaa; }
+      .tarjeta-pieza:active { transform: scale(0.96); }
+      .tarjeta-pieza.capturada {
+        background: #FFF8E1; border-color: #FFD700;
+      }
+      .tarjeta-pieza.pendiente {
+        background: #f5f5f5; color: #aaa;
+        cursor: default;
+      }
       .tarjeta-pieza .emoji { font-size: 30px; margin-bottom: 4px; }
       .tarjeta-pieza .nombre { font-weight: bold; color: #333; font-size: 12px; }
       .tarjeta-pieza.pendiente .nombre { color: #bbb; }
-      #panel-coleccion button {
+
+      #panel-coleccion .btn-cerrar {
         background: #8B4513; color: white; border: none;
+        padding: 12px 25px; border-radius: 10px;
+        font-weight: bold; font-size: 15px;
+        cursor: pointer; width: 100%;
+      }
+
+      /* PANEL DETALLE */
+      #panel-detalle {
+        padding: 25px; border: 5px solid #FFD700;
+      }
+      #panel-detalle .emoji-grande { font-size: 55px; margin-bottom: 8px; }
+      #panel-detalle h2 { margin: 0 0 10px; color: #333; }
+      #panel-detalle p { color: #666; line-height: 1.5; margin: 0 0 20px; }
+      #panel-detalle button {
+        background: #333; color: white; border: none;
         padding: 12px 25px; border-radius: 10px;
         font-weight: bold; font-size: 15px;
         cursor: pointer; width: 100%;
@@ -123,7 +142,6 @@
         <a-asset-item id="pieza2" src="./pieza2.glb"></a-asset-item>
       </a-assets>
 
-      <!-- MARCADOR 1 - Hiro -->
       <a-marker preset="hiro">
         <a-light type="ambient" intensity="1.5"></a-light>
         <a-light type="directional" position="-1 2 1" intensity="1"></a-light>
@@ -135,7 +153,6 @@
         </a-gltf-model>
       </a-marker>
 
-      <!-- MARCADOR 2 - Kanji (segundo marcador de AR.js) -->
       <a-marker preset="kanji">
         <a-light type="ambient" intensity="1.5"></a-light>
         <a-light type="directional" position="-1 2 1" intensity="1"></a-light>
@@ -150,10 +167,11 @@
       <a-entity camera></a-entity>
     </a-scene>
 
-    <!-- HINT -->
+    <!-- Overlay de pausa (tapa la cámara visualmente) -->
+    <div id="overlay-pausa"></div>
+
     <div id="hint">👇 Desliza hacia abajo para atrapar</div>
 
-    <!-- BOTONES -->
     <button id="btn-pausa" onclick="abrirPausa()">⏸</button>
     <button id="btn-coleccion" onclick="abrirColeccion()">🎵 Colección</button>
 
@@ -161,7 +179,7 @@
     <div id="panel-captura" class="panel">
       <div style="font-size: 50px; margin-bottom: 10px;">🏆</div>
       <h2>¡Pieza Atrapada!</h2>
-      <p id="texto-captura">Has recolectado esta reliquia para el museo.</p>
+      <p id="texto-captura"></p>
       <button onclick="cerrarCaptura()">Añadir a mi colección</button>
     </div>
 
@@ -177,11 +195,18 @@
       <h2>🎵 Mi Colección</h2>
       <p class="subtitulo" id="contador-coleccion">0 de 2 piezas encontradas</p>
       <div class="grid-coleccion" id="grid-coleccion"></div>
-      <button onclick="cerrarColeccion()">Cerrar</button>
+      <button class="btn-cerrar" onclick="cerrarColeccion()">Cerrar</button>
+    </div>
+
+    <!-- PANEL DETALLE -->
+    <div id="panel-detalle" class="panel">
+      <div class="emoji-grande" id="detalle-emoji"></div>
+      <h2 id="detalle-nombre"></h2>
+      <p id="detalle-descripcion"></p>
+      <button onclick="cerrarDetalle()">← Volver a la colección</button>
     </div>
 
     <script>
-      // ─── DATOS DE LAS PIEZAS ───────────────────────────────────────
       const piezas = [
         {
           id: 'modelo-1',
@@ -201,12 +226,12 @@
 
       let pausado = false;
       let touchStartY = 0;
-      let piezaActivaId = null; // qué modelo está visible en cámara
+      let piezaActivaId = null;
 
-      // ─── DETECTAR QUÉ MARCADOR ESTÁ VISIBLE ───────────────────────
       document.querySelector('a-scene').addEventListener('loaded', function () {
         piezas.forEach(function(pieza) {
-          const marker = document.getElementById(pieza.id).closest('a-marker');
+          const modelo = document.getElementById(pieza.id);
+          const marker = modelo ? modelo.closest('a-marker') : null;
           if (marker) {
             marker.addEventListener('markerFound', function() {
               if (!pieza.capturada) piezaActivaId = pieza.id;
@@ -218,7 +243,6 @@
         });
       });
 
-      // ─── GESTO DESLIZAR ───────────────────────────────────────────
       document.addEventListener('touchstart', function(e) {
         touchStartY = e.touches[0].clientY;
       });
@@ -231,7 +255,6 @@
         }
       });
 
-      // ─── ATRAPAR ──────────────────────────────────────────────────
       function atrapar(modeloId) {
         const pieza = piezas.find(p => p.id === modeloId);
         if (!pieza || pieza.capturada) return;
@@ -253,31 +276,31 @@
         }, 700);
       }
 
-      // ─── PANEL CAPTURA ────────────────────────────────────────────
       function cerrarCaptura() {
         document.getElementById('panel-captura').style.display = 'none';
-        // Mostrar hint solo si quedan piezas
         const quedan = piezas.some(p => !p.capturada);
         if (quedan) document.getElementById('hint').style.opacity = '1';
       }
 
-      // ─── PAUSA ────────────────────────────────────────────────────
       function abrirPausa() {
         pausado = true;
+        document.getElementById('overlay-pausa').style.display = 'block';
         document.getElementById('panel-pausa').style.display = 'block';
         document.getElementById('btn-pausa').style.display = 'none';
+        document.getElementById('btn-coleccion').style.display = 'none';
       }
 
       function reanudar() {
         pausado = false;
+        document.getElementById('overlay-pausa').style.display = 'none';
         document.getElementById('panel-pausa').style.display = 'none';
-        document.getElementById('btn-coleccion').style.display = 'block';
         document.getElementById('btn-pausa').style.display = 'block';
+        document.getElementById('btn-coleccion').style.display = 'block';
       }
 
-      // ─── COLECCIÓN ────────────────────────────────────────────────
       function abrirColeccion() {
         pausado = true;
+        document.getElementById('overlay-pausa').style.display = 'block';
         document.getElementById('btn-coleccion').style.display = 'none';
         document.getElementById('btn-pausa').style.display = 'none';
 
@@ -293,6 +316,13 @@
           tarjeta.innerHTML =
             '<div class="emoji">' + (pieza.capturada ? pieza.emoji : '❓') + '</div>' +
             '<div class="nombre">' + (pieza.capturada ? pieza.nombre : '???') + '</div>';
+
+          if (pieza.capturada) {
+            tarjeta.addEventListener('click', function() {
+              abrirDetalle(pieza);
+            });
+          }
+
           grid.appendChild(tarjeta);
         });
 
@@ -301,9 +331,23 @@
 
       function cerrarColeccion() {
         pausado = false;
+        document.getElementById('overlay-pausa').style.display = 'none';
         document.getElementById('panel-coleccion').style.display = 'none';
         document.getElementById('btn-coleccion').style.display = 'block';
         document.getElementById('btn-pausa').style.display = 'block';
+      }
+
+      function abrirDetalle(pieza) {
+        document.getElementById('panel-coleccion').style.display = 'none';
+        document.getElementById('detalle-emoji').textContent = pieza.emoji;
+        document.getElementById('detalle-nombre').textContent = pieza.nombre;
+        document.getElementById('detalle-descripcion').textContent = pieza.descripcion;
+        document.getElementById('panel-detalle').style.display = 'block';
+      }
+
+      function cerrarDetalle() {
+        document.getElementById('panel-detalle').style.display = 'none';
+        document.getElementById('panel-coleccion').style.display = 'block';
       }
     </script>
   </body>
