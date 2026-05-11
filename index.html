@@ -3,85 +3,105 @@
   <head>
     <title>Mi Museo AR - App de Colección</title>
     <meta charset="utf-8">
-    <!-- Cargamos las librerías necesarias -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.5/aframe/build/aframe-ar.js"></script>
   </head>
-
   <body style="margin: 0px; overflow: hidden; font-family: sans-serif;">
 
-    <!-- ESCENA AR -->
-    <a-scene 
-      embedded 
+    <a-scene
+      embedded
       arjs="sourceType: webcam; debugUIEnabled: false;"
-      renderer="logarithmicDepthBuffer: true;">
-      
-      <!-- 1. ASSETS: Aquí cargamos tu modelo -->
+      renderer="logarithmicDepthBuffer: true; precision: medium;"
+      vr-mode-ui="enabled: false">
+
       <a-assets>
-        <a-asset-item id="miPieza" src="pieza1.glb"></a-asset-item>
+        <a-asset-item id="miPieza" src="./pieza1.glb"></a-asset-item>
       </a-assets>
 
-      <!-- 2. LUCES: Para que la pieza no se vea oscura -->
-      <a-light type="ambient" intensity="1.5"></a-light>
-      <a-light type="directional" position="-1 2 1" intensity="1"></a-light>
-
-      <!-- 3. DETECTOR DE CLICS: Esto permite tocar la pieza en la pantalla -->
-      <a-entity cursor="rayOrigin: mouse" raycaster="objects: .clickable"></a-entity>
-
-      <!-- 4. EL MARCADOR (HIRO) -->
       <a-marker preset="hiro">
-        
-        <!-- Tu pieza 3D -->
-        <!-- NOTA: He ajustado el scale a 0.05, si se ve muy chica o grande, cámbialo aquí -->
-        <a-gltf-model 
+        <a-light type="ambient" intensity="1.5"></a-light>
+        <a-light type="directional" position="-1 2 1" intensity="1"></a-light>
+
+        <a-gltf-model
           id="modelo-3d"
-          src="#miPieza" 
-          class="clickable"
-          scale="0.05 0.05 0.05" 
+          src="#miPieza"
+          scale="0.05 0.05 0.05"
           position="0 0.2 0"
-          onclick="atrapado()"
           animation="property: rotation; to: 0 360 0; loop: true; dur: 8000; easing: linear">
         </a-gltf-model>
-
-        <!-- Una pequeña base decorativa debajo de la pieza -->
-        <a-cylinder position="0 0 0" radius="0.5" height="0.1" color="#333"></a-cylinder>
       </a-marker>
-      
-      <!-- Cámara -->
+
       <a-entity camera></a-entity>
     </a-scene>
 
-    <!-- 5. INTERFAZ DE USUARIO (Panel que aparece al tocar) -->
-    <div id="pokedex" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; max-width: 300px; background: white; padding: 25px; border-radius: 20px; text-align: center; box-shadow: 0px 10px 30px rgba(0,0,0,0.3); z-index: 1000; border: 5px solid #FFD700;">
+    <!-- Indicador de gesto -->
+    <div id="hint" style="position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%);
+      background: rgba(0,0,0,0.55); color: white; padding: 10px 22px; border-radius: 30px;
+      font-size: 15px; pointer-events: none; transition: opacity 0.5s;">
+      👇 Desliza hacia abajo para atrapar
+    </div>
+
+    <!-- Panel de felicitaciones -->
+    <div id="pokedex" style="display: none; position: fixed; top: 50%; left: 50%;
+      transform: translate(-50%, -50%); width: 80%; max-width: 300px; background: white;
+      padding: 25px; border-radius: 20px; text-align: center;
+      box-shadow: 0px 10px 30px rgba(0,0,0,0.3); z-index: 1000; border: 5px solid #FFD700;">
       <div style="font-size: 50px; margin-bottom: 10px;">🏆</div>
       <h2 style="margin: 0; color: #333;">¡Pieza Atrapada!</h2>
       <p style="color: #666; line-height: 1.4; margin: 15px 0;">
-        Has recolectado esta reliquia para el museo. <br>
+        Has recolectado esta reliquia para el museo.<br>
         <b>Dato curioso:</b> Esta pieza revela secretos de una civilización antigua.
       </p>
-      <button onclick="cerrarPanel()" style="background: #FFD700; color: #333; border: none; padding: 12px 25px; border-radius: 10px; font-weight: bold; font-size: 16px; cursor: pointer; width: 100%;">
+      <button onclick="cerrarPanel()" style="background: #FFD700; color: #333; border: none;
+        padding: 12px 25px; border-radius: 10px; font-weight: bold; font-size: 16px;
+        cursor: pointer; width: 100%;">
         Añadir a mi colección
       </button>
     </div>
 
-    <!-- 6. LÓGICA DEL JUEGO -->
     <script>
-      function atrapado() {
-        // Mostramos el letrero
-        document.getElementById('pokedex').style.display = 'block';
+      let touchStartY = 0;
+      let atrapada = false;
+
+      // Detectar inicio del toque
+      document.addEventListener('touchstart', function(e) {
+        touchStartY = e.touches[0].clientY;
+      });
+
+      // Detectar el desliz
+      document.addEventListener('touchend', function(e) {
+        if (atrapada) return;
+
+        const touchEndY = e.changedTouches[0].clientY;
+        const deltaY = touchEndY - touchStartY;
+
+        // Si deslizó hacia abajo más de 80px, atrapar
+        if (deltaY > 80) {
+          atrapar();
+        }
+      });
+
+      function atrapar() {
+        atrapada = true;
+
+        // Ocultar el hint
+        document.getElementById('hint').style.opacity = '0';
+
+        // Animación: el modelo "cae" hacia abajo antes de desaparecer
+        const modelo = document.getElementById('modelo-3d');
+        modelo.setAttribute('animation__caer', 
+          'property: position; to: 0 -1 0; dur: 400; easing: easeInQuad');
         
-        // Hacemos que la pieza desaparezca (como si la hubieras guardado)
-        document.getElementById('modelo-3d').setAttribute('visible', 'false');
+        setTimeout(function() {
+          modelo.setAttribute('visible', 'false');
+          document.getElementById('pokedex').style.display = 'block';
+        }, 400);
       }
 
       function cerrarPanel() {
-        // Cerramos el letrero
         document.getElementById('pokedex').style.display = 'none';
-        
-        // Si quieres que el usuario pueda atraparla de nuevo, quita las barras // de abajo:
-        // document.getElementById('modelo-3d').setAttribute('visible', 'true');
       }
     </script>
-
   </body>
 </html>
