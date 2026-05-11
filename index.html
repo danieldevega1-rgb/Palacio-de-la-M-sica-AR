@@ -1,13 +1,116 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Mi Museo AR - App de Colección</title>
+    <title>Museo de Música Mexicana AR</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.5/aframe/build/aframe-ar.js"></script>
+    <style>
+      * { box-sizing: border-box; }
+
+      #hint {
+        position: fixed; bottom: 40px; left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0,0,0,0.55); color: white;
+        padding: 10px 22px; border-radius: 30px;
+        font-size: 15px; pointer-events: none;
+        transition: opacity 0.5s; font-family: sans-serif;
+      }
+
+      /* BOTÓN PAUSA */
+      #btn-pausa {
+        position: fixed; top: 20px; right: 20px;
+        background: rgba(0,0,0,0.6); color: white;
+        border: none; border-radius: 50%;
+        width: 50px; height: 50px; font-size: 22px;
+        cursor: pointer; z-index: 500;
+      }
+
+      /* BOTÓN COLECCIÓN */
+      #btn-coleccion {
+        position: fixed; top: 20px; left: 20px;
+        background: rgba(0,0,0,0.6); color: white;
+        border: none; border-radius: 25px;
+        padding: 10px 16px; font-size: 14px;
+        font-family: sans-serif; cursor: pointer; z-index: 500;
+      }
+
+      /* PANEL BASE */
+      .panel {
+        display: none; position: fixed;
+        top: 50%; left: 50%;
+        transform: translate(-50%, -50%);
+        width: 85%; max-width: 320px;
+        background: white; border-radius: 20px;
+        text-align: center; z-index: 1000;
+        box-shadow: 0px 10px 30px rgba(0,0,0,0.3);
+        font-family: sans-serif;
+      }
+
+      /* PANEL CAPTURA */
+      #panel-captura {
+        padding: 25px;
+        border: 5px solid #FFD700;
+      }
+      #panel-captura h2 { margin: 0; color: #333; }
+      #panel-captura p { color: #666; line-height: 1.4; margin: 15px 0; }
+      #panel-captura button {
+        background: #FFD700; color: #333; border: none;
+        padding: 12px 25px; border-radius: 10px;
+        font-weight: bold; font-size: 16px;
+        cursor: pointer; width: 100%;
+      }
+
+      /* PANEL PAUSA */
+      #panel-pausa {
+        padding: 30px;
+        border: 5px solid #444;
+      }
+      #panel-pausa h2 { margin: 0 0 20px; color: #333; }
+      #panel-pausa button {
+        display: block; width: 100%;
+        padding: 12px; margin: 8px 0;
+        border-radius: 10px; font-size: 16px;
+        font-weight: bold; cursor: pointer; border: none;
+      }
+      .btn-reanudar { background: #4CAF50; color: white; }
+      .btn-coleccion-pausa { background: #FFD700; color: #333; }
+
+      /* PANEL COLECCIÓN */
+      #panel-coleccion {
+        padding: 25px;
+        border: 5px solid #8B4513;
+        max-height: 80vh;
+        overflow-y: auto;
+      }
+      #panel-coleccion h2 { margin: 0 0 5px; color: #333; }
+      #panel-coleccion .subtitulo { color: #888; font-size: 13px; margin-bottom: 15px; }
+      .grid-coleccion {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 15px;
+      }
+      .tarjeta-pieza {
+        border-radius: 12px; padding: 12px 8px;
+        text-align: center; font-size: 12px;
+        border: 2px solid #ddd;
+      }
+      .tarjeta-pieza.capturada { background: #FFF8E1; border-color: #FFD700; }
+      .tarjeta-pieza.pendiente { background: #f5f5f5; color: #aaa; }
+      .tarjeta-pieza .emoji { font-size: 30px; margin-bottom: 4px; }
+      .tarjeta-pieza .nombre { font-weight: bold; color: #333; font-size: 12px; }
+      .tarjeta-pieza.pendiente .nombre { color: #bbb; }
+      #panel-coleccion button {
+        background: #8B4513; color: white; border: none;
+        padding: 12px 25px; border-radius: 10px;
+        font-weight: bold; font-size: 15px;
+        cursor: pointer; width: 100%;
+      }
+    </style>
   </head>
-  <body style="margin: 0px; overflow: hidden; font-family: sans-serif;">
+  <body style="margin: 0; overflow: hidden;">
 
     <a-scene
       embedded
@@ -16,90 +119,191 @@
       vr-mode-ui="enabled: false">
 
       <a-assets>
-        <a-asset-item id="miPieza" src="./pieza1.glb"></a-asset-item>
+        <a-asset-item id="pieza1" src="./pieza1.glb"></a-asset-item>
+        <a-asset-item id="pieza2" src="./pieza2.glb"></a-asset-item>
       </a-assets>
 
+      <!-- MARCADOR 1 - Hiro -->
       <a-marker preset="hiro">
         <a-light type="ambient" intensity="1.5"></a-light>
         <a-light type="directional" position="-1 2 1" intensity="1"></a-light>
+        <a-gltf-model
+          id="modelo-1"
+          src="#pieza1"
+          scale="0.05 0.05 0.05"
+          position="0 0.2 0">
+        </a-gltf-model>
+      </a-marker>
 
-<a-gltf-model
-  id="modelo-3d"
-  src="#miPieza"
-  scale="0.2 0.2 0.2"
-  position="0 0.2 0">
-</a-gltf-model>
+      <!-- MARCADOR 2 - Kanji (segundo marcador de AR.js) -->
+      <a-marker preset="kanji">
+        <a-light type="ambient" intensity="1.5"></a-light>
+        <a-light type="directional" position="-1 2 1" intensity="1"></a-light>
+        <a-gltf-model
+          id="modelo-2"
+          src="#pieza2"
+          scale="0.05 0.05 0.05"
+          position="0 0.2 0">
+        </a-gltf-model>
       </a-marker>
 
       <a-entity camera></a-entity>
     </a-scene>
 
-    <!-- Indicador de gesto -->
-    <div id="hint" style="position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%);
-      background: rgba(0,0,0,0.55); color: white; padding: 10px 22px; border-radius: 30px;
-      font-size: 15px; pointer-events: none; transition: opacity 0.5s;">
-      👇 Desliza hacia abajo para atrapar
+    <!-- HINT -->
+    <div id="hint">👇 Desliza hacia abajo para atrapar</div>
+
+    <!-- BOTONES -->
+    <button id="btn-pausa" onclick="abrirPausa()">⏸</button>
+    <button id="btn-coleccion" onclick="abrirColeccion()">🎵 Colección</button>
+
+    <!-- PANEL CAPTURA -->
+    <div id="panel-captura" class="panel">
+      <div style="font-size: 50px; margin-bottom: 10px;">🏆</div>
+      <h2>¡Pieza Atrapada!</h2>
+      <p id="texto-captura">Has recolectado esta reliquia para el museo.</p>
+      <button onclick="cerrarCaptura()">Añadir a mi colección</button>
     </div>
 
-    <!-- Panel de felicitaciones -->
-    <div id="pokedex" style="display: none; position: fixed; top: 50%; left: 50%;
-      transform: translate(-50%, -50%); width: 80%; max-width: 300px; background: white;
-      padding: 25px; border-radius: 20px; text-align: center;
-      box-shadow: 0px 10px 30px rgba(0,0,0,0.3); z-index: 1000; border: 5px solid #FFD700;">
-      <div style="font-size: 50px; margin-bottom: 10px;">🏆</div>
-      <h2 style="margin: 0; color: #333;">¡Pieza Atrapada!</h2>
-      <p style="color: #666; line-height: 1.4; margin: 15px 0;">
-        Has recolectado esta reliquia para el museo.<br>
-        <b>Dato curioso:</b> Esta pieza revela secretos de una civilización antigua.
-      </p>
-      <button onclick="cerrarPanel()" style="background: #FFD700; color: #333; border: none;
-        padding: 12px 25px; border-radius: 10px; font-weight: bold; font-size: 16px;
-        cursor: pointer; width: 100%;">
-        Añadir a mi colección
-      </button>
+    <!-- PANEL PAUSA -->
+    <div id="panel-pausa" class="panel">
+      <h2>⏸ Pausa</h2>
+      <button class="btn-reanudar" onclick="reanudar()">▶ Reanudar recorrido</button>
+      <button class="btn-coleccion-pausa" onclick="reanudar(); abrirColeccion()">🎵 Ver mi colección</button>
+    </div>
+
+    <!-- PANEL COLECCIÓN -->
+    <div id="panel-coleccion" class="panel">
+      <h2>🎵 Mi Colección</h2>
+      <p class="subtitulo" id="contador-coleccion">0 de 2 piezas encontradas</p>
+      <div class="grid-coleccion" id="grid-coleccion"></div>
+      <button onclick="cerrarColeccion()">Cerrar</button>
     </div>
 
     <script>
-      let touchStartY = 0;
-      let atrapada = false;
+      // ─── DATOS DE LAS PIEZAS ───────────────────────────────────────
+      const piezas = [
+        {
+          id: 'modelo-1',
+          nombre: 'Guitarra Clásica',
+          emoji: '🎸',
+          descripcion: 'Una guitarra del siglo XIX usada en las primeras serenatas mexicanas.',
+          capturada: false
+        },
+        {
+          id: 'modelo-2',
+          nombre: 'Marimba',
+          emoji: '🎹',
+          descripcion: 'Instrumento originario del sureste mexicano, símbolo de Chiapas y Oaxaca.',
+          capturada: false
+        }
+      ];
 
-      // Detectar inicio del toque
+      let pausado = false;
+      let touchStartY = 0;
+      let piezaActivaId = null; // qué modelo está visible en cámara
+
+      // ─── DETECTAR QUÉ MARCADOR ESTÁ VISIBLE ───────────────────────
+      document.querySelector('a-scene').addEventListener('loaded', function () {
+        piezas.forEach(function(pieza) {
+          const marker = document.getElementById(pieza.id).closest('a-marker');
+          if (marker) {
+            marker.addEventListener('markerFound', function() {
+              if (!pieza.capturada) piezaActivaId = pieza.id;
+            });
+            marker.addEventListener('markerLost', function() {
+              if (piezaActivaId === pieza.id) piezaActivaId = null;
+            });
+          }
+        });
+      });
+
+      // ─── GESTO DESLIZAR ───────────────────────────────────────────
       document.addEventListener('touchstart', function(e) {
         touchStartY = e.touches[0].clientY;
       });
 
-      // Detectar el desliz
       document.addEventListener('touchend', function(e) {
-        if (atrapada) return;
-
-        const touchEndY = e.changedTouches[0].clientY;
-        const deltaY = touchEndY - touchStartY;
-
-        // Si deslizó hacia abajo más de 80px, atrapar
-        if (deltaY > 80) {
-          atrapar();
+        if (pausado) return;
+        const deltaY = e.changedTouches[0].clientY - touchStartY;
+        if (deltaY > 80 && piezaActivaId) {
+          atrapar(piezaActivaId);
         }
       });
 
-      function atrapar() {
-        atrapada = true;
+      // ─── ATRAPAR ──────────────────────────────────────────────────
+      function atrapar(modeloId) {
+        const pieza = piezas.find(p => p.id === modeloId);
+        if (!pieza || pieza.capturada) return;
 
-        // Ocultar el hint
+        pieza.capturada = true;
+        piezaActivaId = null;
+
         document.getElementById('hint').style.opacity = '0';
 
-        // Animación: el modelo "cae" hacia abajo antes de desaparecer
-        const modelo = document.getElementById('modelo-3d');
-        modelo.setAttribute('animation__caer', 
+        const modelo = document.getElementById(modeloId);
+        modelo.setAttribute('animation__caer',
           'property: position; to: 0 2 0; dur: 700; easing: easeInQuad');
-        
+
         setTimeout(function() {
           modelo.setAttribute('visible', 'false');
-          document.getElementById('pokedex').style.display = 'block';
+          document.getElementById('texto-captura').innerHTML =
+            '<b>' + pieza.nombre + '</b><br><br>' + pieza.descripcion;
+          document.getElementById('panel-captura').style.display = 'block';
         }, 700);
       }
 
-      function cerrarPanel() {
-        document.getElementById('pokedex').style.display = 'none';
+      // ─── PANEL CAPTURA ────────────────────────────────────────────
+      function cerrarCaptura() {
+        document.getElementById('panel-captura').style.display = 'none';
+        // Mostrar hint solo si quedan piezas
+        const quedan = piezas.some(p => !p.capturada);
+        if (quedan) document.getElementById('hint').style.opacity = '1';
+      }
+
+      // ─── PAUSA ────────────────────────────────────────────────────
+      function abrirPausa() {
+        pausado = true;
+        document.getElementById('panel-pausa').style.display = 'block';
+        document.getElementById('btn-pausa').style.display = 'none';
+      }
+
+      function reanudar() {
+        pausado = false;
+        document.getElementById('panel-pausa').style.display = 'none';
+        document.getElementById('btn-coleccion').style.display = 'block';
+        document.getElementById('btn-pausa').style.display = 'block';
+      }
+
+      // ─── COLECCIÓN ────────────────────────────────────────────────
+      function abrirColeccion() {
+        pausado = true;
+        document.getElementById('btn-coleccion').style.display = 'none';
+        document.getElementById('btn-pausa').style.display = 'none';
+
+        const capturadas = piezas.filter(p => p.capturada).length;
+        document.getElementById('contador-coleccion').textContent =
+          capturadas + ' de ' + piezas.length + ' piezas encontradas';
+
+        const grid = document.getElementById('grid-coleccion');
+        grid.innerHTML = '';
+        piezas.forEach(function(pieza) {
+          const tarjeta = document.createElement('div');
+          tarjeta.className = 'tarjeta-pieza ' + (pieza.capturada ? 'capturada' : 'pendiente');
+          tarjeta.innerHTML =
+            '<div class="emoji">' + (pieza.capturada ? pieza.emoji : '❓') + '</div>' +
+            '<div class="nombre">' + (pieza.capturada ? pieza.nombre : '???') + '</div>';
+          grid.appendChild(tarjeta);
+        });
+
+        document.getElementById('panel-coleccion').style.display = 'block';
+      }
+
+      function cerrarColeccion() {
+        pausado = false;
+        document.getElementById('panel-coleccion').style.display = 'none';
+        document.getElementById('btn-coleccion').style.display = 'block';
+        document.getElementById('btn-pausa').style.display = 'block';
       }
     </script>
   </body>
