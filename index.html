@@ -1,39 +1,73 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Museo AR</title>
+    <title>Mi Museo AR - App de Colección</title>
+    <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.5/aframe/build/aframe-ar.js"></script>
   </head>
-  <body style="margin: 0px; overflow: hidden;">
+  <body style="margin: 0px; overflow: hidden; font-family: sans-serif;">
 
     <a-scene
       embedded
-      arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3;"
+      arjs="sourceType: webcam; debugUIEnabled: false;"
       renderer="logarithmicDepthBuffer: true; precision: medium;"
-      vr-mode-ui="enabled: false"
-      loading-screen="enabled: false">
+      vr-mode-ui="enabled: false">
 
-      <a-assets timeout="30000">
+      <a-assets>
         <a-asset-item id="miPieza" src="./pieza1.glb"></a-asset-item>
       </a-assets>
 
-      <a-marker preset="hiro">
-        <!-- Esfera de referencia: si la ves, el marcador funciona -->
-        <a-sphere position="0 0.05 0" radius="0.05" color="red"></a-sphere>
+      <a-entity cursor="rayOrigin: mouse" raycaster="objects: .clickable"></a-entity>
 
-        <!-- Modelo 3D: empieza con escala 1 y ajusta -->
+      <a-marker preset="hiro">
+        <a-light type="ambient" intensity="1.5"></a-light>
+        <a-light type="directional" position="-1 2 1" intensity="1"></a-light>
+
         <a-gltf-model
+          id="modelo-3d"
           src="#miPieza"
-          scale="1 1 1"
-          position="0 0 0"
-          rotation="0 0 0">
+          class="clickable"
+          scale="0.05 0.05 0.05"
+          position="0 0.2 0"
+          animation="property: rotation; to: 0 360 0; loop: true; dur: 8000; easing: linear">
         </a-gltf-model>
+
+        <a-cylinder position="0 0 0" radius="0.5" height="0.1" color="#333"></a-cylinder>
       </a-marker>
 
       <a-entity camera></a-entity>
     </a-scene>
 
+    <div id="pokedex" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; max-width: 300px; background: white; padding: 25px; border-radius: 20px; text-align: center; box-shadow: 0px 10px 30px rgba(0,0,0,0.3); z-index: 1000; border: 5px solid #FFD700;">
+      <div style="font-size: 50px; margin-bottom: 10px;">🏆</div>
+      <h2 style="margin: 0; color: #333;">¡Pieza Atrapada!</h2>
+      <p style="color: #666; line-height: 1.4; margin: 15px 0;">
+        Has recolectado esta reliquia para el museo.<br>
+        <b>Dato curioso:</b> Esta pieza revela secretos de una civilización antigua.
+      </p>
+      <button onclick="cerrarPanel()" style="background: #FFD700; color: #333; border: none; padding: 12px 25px; border-radius: 10px; font-weight: bold; font-size: 16px; cursor: pointer; width: 100%;">
+        Añadir a mi colección
+      </button>
+    </div>
+
+    <script>
+      // Esperamos a que A-Frame cargue antes de agregar listeners
+      document.querySelector('a-scene').addEventListener('loaded', function () {
+        document.querySelector('#modelo-3d').addEventListener('click', function () {
+          atrapado();
+        });
+      });
+
+      function atrapado() {
+        document.getElementById('pokedex').style.display = 'block';
+        document.getElementById('modelo-3d').setAttribute('visible', 'false');
+      }
+
+      function cerrarPanel() {
+        document.getElementById('pokedex').style.display = 'none';
+      }
+    </script>
   </body>
 </html>
